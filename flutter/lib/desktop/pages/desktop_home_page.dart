@@ -414,7 +414,7 @@ class _DesktopHomePageState extends State<DesktopHomePage>
           ),
           if (!isOutgoingOnly)
             Text(
-              '此远程桌面为汉南党校专用,请在地址簿界面登陆对应账号使用,账号密码请联系管理员 --byXCX',
+              '此远程桌面为汉南党校专用，请在地址簿界面登陆对应账号使用，账号密码请联系管理员 --byXCX',
               overflow: TextOverflow.clip,
               style: Theme.of(context).textTheme.bodySmall,
             ),

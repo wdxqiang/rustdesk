@@ -318,7 +318,7 @@ def ffi_bindgen_function_refactor():
 
 def build_flutter_deb(version, features):
     if not skip_cargo:
-        system2(f'cargo build --locked --features {features} --lib --release')
+        system2(f'cargo build --features {features} --lib --release')
         ffi_bindgen_function_refactor()
     os.chdir('flutter')
     system2('flutter build linux --release')
@@ -428,7 +428,7 @@ def build_flutter_dmg(version, features):
 
 def build_flutter_arch_manjaro(version, features):
     if not skip_cargo:
-        system2(f'cargo build --locked --features {features} --lib --release')
+        system2(f'cargo build --features {features} --lib --release')
     ffi_bindgen_function_refactor()
     os.chdir('flutter')
     system2('flutter build linux --release')
@@ -439,7 +439,7 @@ def build_flutter_arch_manjaro(version, features):
 
 def build_flutter_windows(version, features, skip_portable_pack):
     if not skip_cargo:
-        system2(f'cargo build --locked --features {features} --lib --release')
+        system2(f'cargo build --features {features} --lib --release')
         if not os.path.exists("target/release/librustdesk.dll"):
             print("cargo build failed, please check rust source code.")
             exit(-1)

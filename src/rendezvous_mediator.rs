@@ -707,7 +707,7 @@ impl RendezvousMediator {
                 // Send failure notification via UDP so hbbs can respond to the requesting client quickly
                 if let Ok((udp_socket, addr)) = new_direct_udp_for(&self.host).await {
                     let mut failure_msg = msg_punch.clone();
-                    failure_msg.socket_addr = Vec::new(); // Empty socket_addr signals failure
+                    failure_msg.socket_addr = Bytes::new(); // Empty socket_addr signals failure
                     let mut msg_out = Message::new();
                     msg_out.set_punch_hole_sent(failure_msg);
                     if let Ok(data) = msg_out.write_to_bytes() {

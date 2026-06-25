@@ -700,20 +700,32 @@ impl RendezvousMediator {
             return Ok(());
         }
         log::debug!("Punch tcp hole to {:?}", peer_addr);
-        let mut socket = {
-            let socket = connect_tcp(&*self.host, CONNECT_TIMEOUT).await?;
-            let local_addr = socket.local_addr();
-            // key important here for punch hole to tell my gateway incoming peer is safe.
-            // it can not be async here, because local_addr can not be reused, we must close the connection before use it again.
-            allow_err!(socket_client::connect_tcp_local(peer_addr, Some(local_addr), 30).await);
-            socket
+        let mut socket = match connect_tcp(&*self.host, CONNECT_TIMEOUT).await {
+            Ok(socket) => socket,
+            Err(err) => {
+                log::error!("Failed to connect to hbbs for TCP punch hole: {}", err);
+                // Send failure notification via UDP so hbbs can respond to the requesting client quickly
+                if let Ok((udp_socket, addr)) = new_direct_udp_for(&self.host).await {
+                    let mut failure_msg = msg_punch.clone();
+                    failure_msg.socket_addr = Vec::new(); // Empty socket_addr signals failure
+                    let mut msg_out = Message::new();
+                    msg_out.set_punch_hole_sent(failure_msg);
+                    if let Ok(data) = msg_out.write_to_bytes() {
+                        allow_err!(udp_socket.send_to(&data, addr).await);
+                    }
+                }
+                return Ok(());
+            }
         };
+        let local_addr = socket.local_addr();
+        // key important here for punch hole to tell my gateway incoming peer is safe.
+        // it can not be async here, because local_addr can not be reused, we must close the connection before use it again.
+        allow_err!(socket_client::connect_tcp_local(peer_addr, Some(local_addr), 30).await);
         let mut msg_out = Message::new();
         msg_out.set_punch_hole_sent(msg_punch);
         let bytes = msg_out.write_to_bytes()?;
         socket.send_raw(bytes).await?;
-        crate::accept_connection(server.clone(), socket, peer_addr, true, control_permissions)
-            .await;
+        crate::accept_connection(server.clone(), socket, peer_addr, true, control_permissions).await;
         Ok(())
     }
 

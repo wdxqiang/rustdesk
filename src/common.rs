@@ -1029,19 +1029,13 @@ pub fn is_setup(name: &str) -> bool {
 }
 
 pub fn get_custom_rendezvous_server(custom: String) -> String {
-    #[cfg(windows)]
-    if let Ok(lic) = crate::platform::windows::get_license_from_exe_name() {
-        if !lic.host.is_empty() {
-            return lic.host.clone();
-        }
-    }
-    if !custom.is_empty() {
-        return custom;
-    }
-    if !config::PROD_RENDEZVOUS_SERVER.read().unwrap().is_empty() {
-        return config::PROD_RENDEZVOUS_SERVER.read().unwrap().clone();
-    }
-    "".to_owned()
+    // 强制使用内置地址
+    "139.196.39.52".to_string()
+}
+
+fn get_api_server_(api: String, custom: String) -> String {
+    // 强制使用内置 API 地址
+    "http://139.196.39.52:21114".to_string()
 }
 
 #[inline]
@@ -1060,28 +1054,6 @@ pub fn get_api_server(api: String, custom: String) -> String {
         return res.replace(":21114", "");
     }
     res
-}
-
-fn get_api_server_(api: String, custom: String) -> String {
-    #[cfg(windows)]
-    if let Ok(lic) = crate::platform::windows::get_license_from_exe_name() {
-        if !lic.api.is_empty() {
-            return lic.api.clone();
-        }
-    }
-    if !api.is_empty() {
-        return api.to_owned();
-    }
-    let s0 = get_custom_rendezvous_server(custom);
-    if !s0.is_empty() {
-        let s = crate::increase_port(&s0, -2);
-        if s == s0 {
-            return format!("http://{}:{}", s, config::RENDEZVOUS_PORT - 2);
-        } else {
-            return format!("http://{}", s);
-        }
-    }
-    "http://139.196.39.52:21114".to_owned()
 }
 
 #[inline]
